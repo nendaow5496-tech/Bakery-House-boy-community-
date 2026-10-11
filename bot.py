@@ -13,6 +13,9 @@ from events import setup_events
 from moderation import setup_moderation
 from staff_management import setup_staff_management
 from staff_attendance import setup_staff_attendance
+from staff_config import setup_staff_config
+from staff_monitoring import setup_staff_monitoring
+from staff_employee import setup_staff_employee
 #from staff_recruitment import setup_staff_recruitment
 
 load_dotenv()
@@ -27,7 +30,7 @@ intents.members = True
 bot = commands.Bot(
     command_prefix="!",
     intents=intents
-)    
+)
 
 # =========================
 # เมื่อบอทออนไลน์
@@ -83,9 +86,14 @@ async def _music_hook():
 
     await setup_moderation(bot)
     await setup_staff_management(bot)
+    await setup_staff_config(bot)
     await setup_staff_attendance(bot)
+    await setup_staff_monitoring(bot)
+    await setup_staff_employee(bot)
     print("DEBUG: โหลดระบบเข้างานสำเร็จ", flush=True)
     print("DEBUG: โหลดระบบทีมงานสำเร็จ", flush=True)
+    print("DEBUG: โหลดระบบแจ้งเตือนทีมงานสำเร็จ", flush=True)
+    print("DEBUG: โหลดระบบพนักงานดีเด่นสำเร็จ", flush=True)
     print("DEBUG 4: โหลดระบบดูแลสมาชิกสำเร็จ", flush=True)
 
     # await setup_staff_recruitment(bot)
@@ -113,7 +121,7 @@ async def testboost(interaction: discord.Interaction):
         description=(
             f"ขอบคุณ {interaction.user.mention} ที่สนับสนุน "
             "**Bakery House Community** <a:emoji_53:1558434672973975612>\n\n"
-            f"นี่คือข้อความทดสอบระบบประกาศบูสต์\n\n<a:emoji_53:1558434672973975612> บูสต์รวมของเซิร์ฟเวอร์: **{count} ครั้ง**"
+            f"นี่คือข้อความทดสอบระบบประกาศบูสต์\n\n<a:emoji_53:1558434672973975612> บูสต์รวมของเซิร"
         ),
         color=0xD8A15D
     )
@@ -140,7 +148,6 @@ async def testboost(interaction: discord.Interaction):
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 if not TOKEN:
-
     raise RuntimeError(
         "ไม่พบ DISCORD_TOKEN ในไฟล์ .env"
     )
