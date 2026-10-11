@@ -40,16 +40,19 @@ def get_missing_staff_ids(guild_id: int, target_date: str):
 
         attendance_rows = db.execute(
             """
-            SELECT user_id, clock_out
+            SELECT user_id, clock_in, clock_out
             FROM attendance
             WHERE guild_id = ? AND clock_in LIKE ?
             """,
             (guild_id, f"{target_date}%"),
         ).fetchall()
 
+        logged_clock_in = {}
         logged_clock_out = {}
-        for user_id, clock_out in attendance_rows:
-            logged_clock_out[int(user_id)] = clock_out
+        for user_id, clock_in, clock_out in attendance_rows:
+            uid = int(user_id)
+            logged_clock_in[uid] = clock_in
+            logged_clock_out[uid] = clock_out
 
         approved_leave = set()
         leave_rows = db.execute(
@@ -65,10 +68,11 @@ def get_missing_staff_ids(guild_id: int, target_date: str):
             approved_leave.add(int(user_id))
 
         missing = []
+        guild = BOT.get_guild(guild_id) if BOT else None
+        if guild is None:
+            return []
+
         for role_id in role_ids:
-            guild = BOT.get_guild(guild_id) if BOT else None
-            if guild is None:
-                continue
             role = guild.get_role(role_id)
             if role is None:
                 continue
@@ -77,9 +81,12 @@ def get_missing_staff_ids(guild_id: int, target_date: str):
                     continue
                 if member.id in approved_leave:
                     continue
-                clock_out = logged_clock_out.get(member.id)
-                if clock_out is not None:
+
+                # ถ้าคุณมี clock_in ในวันนั้นแล้ว และ clock_out ไม่ว่าง => ลงเวลาเรียบร้อย
+                # ถ้าคุณมี clock_in แต่ clock_out ว่าง => ยังไม่ปิดงาน -> ยังถือว่า missing
+                if member.id in logged_clock_in and logged_clock_out.get(member.id) is not None:
                     continue
+
                 if member.id not in missing:
                     missing.append(member.id)
         return missing
